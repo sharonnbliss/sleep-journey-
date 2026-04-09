@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>重整睡眠之旅</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 React 核心 -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- 引入 Babel 用於解析 JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .mask-tape {
+            clip-path: polygon(0% 5%, 5% 0%, 10% 8%, 15% 0%, 20% 6%, 25% 0%, 30% 7%, 35% 0%, 40% 5%, 45% 0%, 50% 8%, 55% 0%, 60% 6%, 65% 0%, 70% 7%, 75% 0%, 80% 5%, 85% 0%, 90% 8%, 95% 0%, 100% 5%, 100% 95%, 95% 100%, 90% 92%, 85% 100%, 80% 94%, 75% 100%, 70% 93%, 65% 100%, 60% 94%, 55% 100%, 50% 92%, 45% 100%, 40% 95%, 35% 100%, 30% 93%, 25% 100%, 20% 94%, 15% 100%, 10% 92%, 5% 100%, 0% 95%);
+        }
+        .grid-bg {
+            background-image: linear-gradient(#e5e7eb 1px, transparent 1px);
+            background-size: 100% 32px;
+        }
+        
+        /* 視覺動態效果 */
+        @keyframes strong-bounce {
+            0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 10px 15px rgba(245, 158, 11, 0.3)); }
+            50% { transform: translateY(-20px) scale(1.15); filter: drop-shadow(0 25px 25px rgba(245, 158, 11, 0.5)); }
+        }
+        .animate-spirit-large {
+            animation: strong-bounce 2.5s ease-in-out infinite;
+        }
+
+        @keyframes pop-in-fancy {
+            0% { transform: scale(0.5) rotate(-5deg); opacity: 0; }
+            50% { transform: scale(1.1) rotate(2deg); }
+            100% { transform: scale(1) rotate(0); opacity: 1; }
+        }
+        .animate-celebrate-fancy {
+            animation: pop-in-fancy 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes star-spin {
+            0% { transform: rotate(0) scale(1); }
+            50% { transform: rotate(180deg) scale(1.3); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+        .animate-star-fancy {
+            animation: star-spin 4s linear infinite;
+        }
+
+        .title-ultra-black {
+            font-weight: 950;
+            letter-spacing: -0.05em;
+            text-shadow: 8px 8px 0px rgba(226, 232, 240, 1);
+        }
+
+        .gradient-line {
+            height: 5px;
+            width: 220px;
+            margin: 8px auto 0;
+            border-radius: 99px;
+            background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.4), rgba(245, 158, 11, 0.5), rgba(99, 102, 241, 0.4), transparent);
+        }
+
+        .celebrate-card-fancy {
+            background: linear-gradient(-45deg, #ffffff, #fffbeb, #fef3c7, #ffffff);
+            background-size: 400% 400%;
+            animation: gradient-bg 10s ease infinite;
+            border: 6px solid #fbbf24;
+            box-shadow: 0 25px 50px -12px rgba(245, 158, 11, 0.25);
+        }
+
+        @keyframes gradient-bg {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        const Icon = ({ name, className, style }) => {
+            const icons = {
+                Sun: <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>,
+                Moon: <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>,
+                ArrowLeft: <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>,
+                Smile: <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="9" r="1.5" fill="currentColor"/><circle cx="15" cy="9" r="1.5" fill="currentColor"/></svg>,
+                Trophy: <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>,
+                Calendar: <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>,
+                Circle: <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/></svg>,
+                CheckCircle2: <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>,
+                Settings: <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>,
+                Star: <svg className={className} style={style} viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            };
+            return icons[name] || null;
+        };
+
+        const sleepPlanData = [
+            {
+                id: 'daytime',
+                title: '白天活動習慣',
+                icon: 'Sun',
+                color: 'bg-emerald-50',
+                blockBg: 'bg-emerald-50',
+                borderColor: 'border-emerald-200',
+                headerColor: 'text-emerald-800',
+                tapeColor: 'bg-emerald-200/60',
+                selectedBg: 'bg-emerald-200/40',
+                items: [
+                    '固定時間起床 (每天都差不多時間起床)',
+                    '曬日光 (出外曬太陽30-60 分鐘)',
+                    '出外做運動 (中強度體能運動，如：快走、慢跑)'
+                ]
+            },
+            {
+                id: 'rituals',
+                title: '睡前儀式',
+                icon: 'Moon',
+                color: 'bg-amber-100',
+                blockBg: 'bg-amber-50',
+                borderColor: 'border-amber-200',
+                headerColor: 'text-amber-800',
+                tapeColor: 'bg-orange-200/60',
+                selectedBg: 'bg-orange-200/40',
+                items: [
+                    '聽助眠/放鬆音樂 (30-45分鐘)',
+                    '練習呼吸放鬆練習 (15-30 分鐘)',
+                    '進行拉筋伸展運動 (15-30 分鐘)',
+                    '熱敷 (眼部、肩、頸、背脊)'
+                ]
+            }
+        ];
+
+        const getLocalTodayStr = () => {
+            const date = new Date();
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        const addDays = (dateStr, days) => {
+            const date = new Date(dateStr);
+            date.setDate(date.getDate() + days);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        const getDayDifference = (startStr, endStr) => {
+            const s = new Date(startStr); s.setHours(0,0,0,0);
+            const e = new Date(endStr); e.setHours(0,0,0,0);
+            return Math.floor((e - s) / (1000 * 60 * 60 * 24)) + 1;
+        };
+
+        function App() {
+            const [appMode, setAppMode] = useState('setup');
+            const [planDuration, setPlanDuration] = useState(7);
+            const [startDate, setStartDate] = useState(getLocalTodayStr());
+            const [dailyLogs, setDailyLogs] = useState({});
+            const [selectedTasks, setSelectedTasks] = useState(new Set());
+            const [hasStartedBefore, setHasStartedBefore] = useState(false);
+
+            const endDate = useMemo(() => {
+                return addDays(startDate, planDuration - 1);
+            }, [startDate, planDuration]);
+
+            const theme = useMemo(() => {
+                if (planDuration === 7) return { main: 'text-emerald-500', highlight: 'text-emerald-500' };
+                if (planDuration === 14) return { main: 'text-orange-400', highlight: 'text-orange-400' };
+                return { main: 'text-blue-500', highlight: 'text-blue-500' };
+            }, [planDuration]);
+
+            useEffect(() => {
+                const saved = localStorage.getItem('sleepPlanDataV4_Ultra');
+                if (saved) {
+                    try {
+                        const parsed = JSON.parse(saved);
+                        setSelectedTasks(new Set(parsed.selectedTasks || []));
+                        setAppMode(parsed.appMode || 'setup');
+                        setPlanDuration(parsed.planDuration || 7);
+                        setStartDate(parsed.startDate || getLocalTodayStr());
+                        setDailyLogs(parsed.dailyLogs || {});
+                        setHasStartedBefore(parsed.hasStartedBefore || false);
+                    } catch (e) {}
+                }
+            }, []);
+
+            useEffect(() => {
+                localStorage.setItem('sleepPlanDataV4_Ultra', JSON.stringify({
+                    selectedTasks: Array.from(selectedTasks),
+                    appMode,
+                    planDuration,
+                    startDate,
+                    dailyLogs,
+                    hasStartedBefore
+                }));
+            }, [selectedTasks, appMode, planDuration, startDate, dailyLogs, hasStartedBefore]);
+
+            const startPlan = (days) => {
+                if (selectedTasks.size === 0) return;
+                setPlanDuration(days);
+                if (!hasStartedBefore) {
+                    setDailyLogs({});
+                    setHasStartedBefore(true);
+                }
+                setAppMode('tracking');
+            };
+
+            const resetPlan = () => {
+                if(confirm("確定要重置所有旅程進度嗎？")) {
+                    setAppMode('setup');
+                    setStartDate(getLocalTodayStr());
+                    setDailyLogs({});
+                    setSelectedTasks(new Set());
+                    setHasStartedBefore(false);
+                }
+            };
+
+            const todayStr = getLocalTodayStr();
+            const currentDayNum = startDate ? getDayDifference(startDate, todayStr) : 1;
+            const isFinished = currentDayNum > planDuration;
+            const todayCompletedTasks = new Set(dailyLogs[todayStr] || []);
+
+            const toggleTodayTask = (task) => {
+                if (isFinished) return;
+                const newTodayTasks = new Set(todayCompletedTasks);
+                if (newTodayTasks.has(task)) newTodayTasks.delete(task);
+                else newTodayTasks.add(task);
+                setDailyLogs(prev => ({ ...prev, [todayStr]: Array.from(newTodayTasks) }));
+            };
+
+            const HeaderContent = () => (
+                <div className="mb-10 text-center">
+                    <h1 className="text-7xl md:text-9xl font-black text-indigo-950 mb-4 title-ultra-black tracking-tighter leading-none">
+                        重整睡眠之旅
+                    </h1>
+                    <div className="relative inline-block">
+                        <h2 className="text-3xl md:text-5xl font-[900] bg-gradient-to-r from-indigo-900 via-indigo-700 to-amber-500 bg-clip-text text-transparent pb-0 tracking-tight leading-tight">
+                            睡眠管理行動計劃
+                        </h2>
+                        <div className="gradient-line"></div>
+                    </div>
+                </div>
+            );
+
+            const Footer = () => (
+                <div className="mt-20 pb-12 text-center">
+                    <div className="inline-block px-10 py-4 rounded-full bg-slate-200/50 backdrop-blur-sm border border-slate-300/30 text-slate-500 font-black text-sm tracking-[0.2em] uppercase">
+                        KCC IMHP OT 2026
+                    </div>
+                </div>
+            );
+
+            if (appMode === 'tracking') {
+                return (
+                    <div className="min-h-screen grid-bg p-4 md:p-8 relative">
+                        <div className="max-w-4xl mx-auto mb-8 flex flex-wrap gap-4 justify-between items-center">
+                            <div className="flex gap-2">
+                                <button onClick={() => setAppMode('setup')} className="flex items-center text-slate-500 bg-white px-5 py-2.5 rounded-full shadow-sm text-sm border border-slate-200 hover:bg-slate-50 transition-all font-bold">
+                                    <Icon name="Settings" className="w-4 h-4 mr-2" /> 修改習慣選擇
+                                </button>
+                                <button onClick={resetPlan} className="flex items-center text-rose-500 bg-white px-5 py-2.5 rounded-full shadow-sm text-sm border border-rose-100 hover:bg-rose-50 transition-all font-bold">
+                                    重置旅程
+                                </button>
+                            </div>
+                            <div className="text-sm font-black text-slate-400 bg-white px-5 py-2.5 rounded-full shadow-sm border border-slate-200">
+                                旅程期：{startDate} 至 {endDate}
+                            </div>
+                        </div>
+
+                        <div className="max-w-4xl mx-auto text-center mb-10 bg-white/90 p-12 md:p-16 rounded-[48px] shadow-sm backdrop-blur-sm border border-slate-100">
+                            <div className={`flex justify-center mb-10 text-amber-400 animate-spirit-large`}>
+                                <Icon name={isFinished ? "Trophy" : "Smile"} className="w-32 h-32 md:w-44 md:h-44 drop-shadow-2xl" />
+                            </div>
+                            
+                            <HeaderContent />
+
+                            <div className="mt-10">
+                                <h3 className={`text-4xl md:text-5xl font-black mb-4 ${theme.main} tracking-tight`}>
+                                    {isFinished ? "恭喜你旅程圓滿結束！" : `第 ${currentDayNum} / ${planDuration} 天`}
+                                </h3>
+                                <p className="text-slate-400 font-bold mb-10 text-xl">今日日期：{todayStr}</p>
+                            </div>
+
+                            <div className="flex flex-wrap gap-3 justify-center mb-6">
+                                {Array.from({length: planDuration}).map((_, i) => {
+                                    const dNum = i + 1;
+                                    const dStr = addDays(startDate, i);
+                                    const isDone = (dailyLogs[dStr] || []).length >= selectedTasks.size && selectedTasks.size > 0;
+                                    const isToday = dStr === todayStr;
+                                    
+                                    let cls = "bg-slate-100 border-slate-200 text-slate-400";
+                                    if (dNum < currentDayNum) {
+                                        cls = isDone ? "bg-emerald-400 border-emerald-500 text-white shadow-md" : "bg-slate-200 border-slate-300 text-slate-500";
+                                    } else if (isToday) {
+                                        cls = isDone ? "bg-emerald-400 border-emerald-500 text-white shadow-lg ring-4 ring-emerald-100" : "bg-white border-indigo-400 text-indigo-600 font-black ring-4 ring-indigo-50/50";
+                                    } else if (isFinished) {
+                                        cls = isDone ? "bg-emerald-400 border-emerald-500 text-white shadow-md" : "bg-emerald-50 border-emerald-100 text-emerald-800";
+                                    }
+
+                                    return (
+                                        <div key={i} className="flex flex-col items-center gap-1.5">
+                                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl border transition-all ${cls}`}>{dNum}</div>
+                                            <span className="text-xs text-slate-400 font-black">{dStr.split('-').slice(1).join('/')}</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="max-w-4xl mx-auto mb-24">
+                            {isFinished ? (
+                                <div className="celebrate-card-fancy p-12 md:p-20 rounded-[64px] text-center animate-celebrate-fancy relative border-8 border-yellow-200">
+                                    <div className="relative z-10">
+                                        <div className="flex justify-center items-center gap-8 mb-14">
+                                            <Icon name="Star" className="w-24 h-24 text-yellow-400 animate-star-fancy" />
+                                            <Icon name="Trophy" className="w-44 h-44 text-yellow-500 animate-spirit-large" />
+                                            <Icon name="Star" className="w-24 h-24 text-yellow-400 animate-star-fancy" />
+                                        </div>
+                                        <h3 className="text-7xl md:text-9xl font-black text-slate-800 mb-12 tracking-tighter leading-tight">你好利害！</h3>
+                                        <div className="bg-white/70 backdrop-blur-xl rounded-[48px] p-12 mb-16 border-4 border-yellow-200 shadow-2xl">
+                                            <p className="text-4xl md:text-6xl text-slate-700 font-black leading-tight">
+                                                成功堅持了 <br className="md:hidden" />
+                                                <span className={`${theme.highlight} text-7xl md:text-9xl mx-3`}>{planDuration}</span> 
+                                                <br className="md:hidden" />
+                                                天的睡眠重整旅程
+                                            </p>
+                                        </div>
+                                        <button onClick={resetPlan} className="w-full max-w-lg mx-auto bg-slate-900 hover:bg-black text-white font-[950] py-8 rounded-[40px] text-4xl shadow-2xl transition-all border-b-[14px] border-slate-700 hover:border-slate-800 active:translate-y-2 active:border-b-[4px]">展開下一段新旅程</button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="bg-white p-10 md:p-12 rounded-[40px] shadow-sm border border-slate-100">
+                                    <h3 className="text-4xl font-black text-slate-800 mb-10 flex items-center gap-4 border-b-4 border-slate-50 pb-8">
+                                        <Icon name="Calendar" className="w-10 h-10 text-emerald-500" />今日打卡清單
+                                    </h3>
+                                    {selectedTasks.size === 0 ? (
+                                        <div className="text-center py-12">
+                                            <p className="text-slate-400 text-2xl font-black mb-6">尚未選擇任何習慣項目</p>
+                                            <button onClick={() => setAppMode('setup')} className="text-indigo-600 font-black text-xl underline underline-offset-8">立即去選擇</button>
+                                        </div>
+                                    ) : (
+                                        <ul className="space-y-6">
+                                            {Array.from(selectedTasks).map((task, idx) => {
+                                                const done = todayCompletedTasks.has(task);
+                                                return (
+                                                    <li key={idx} onClick={() => toggleTodayTask(task)} className={`flex items-start gap-5 p-8 rounded-[32px] cursor-pointer transition-all border-2 ${done ? 'bg-emerald-50 border-emerald-200 shadow-inner scale-[0.97]' : 'bg-slate-50 border-slate-200 hover:bg-slate-100 hover:border-slate-300 active:scale-95'}`}>
+                                                        <Icon name={done ? "CheckCircle2" : "Circle"} className={`w-12 h-12 flex-shrink-0 ${done ? 'text-emerald-500' : 'text-slate-300'}`} />
+                                                        <span className={`text-3xl leading-tight ${done ? 'text-emerald-800 font-black line-through opacity-50' : 'text-slate-700 font-black'}`}>{task}</span>
+                                                    </li>
+                                                );
+                                            })}
+                                        </ul>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                        <Footer />
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen grid-bg p-4 md:p-8">
+                    <div className="max-w-5xl mx-auto text-center mb-16 bg-white/90 p-12 md:p-24 rounded-[64px] shadow-sm backdrop-blur-md border border-slate-100 relative">
+                        <HeaderContent />
+                        
+                        <div className="space-y-16 mt-16">
+                            <p className="text-slate-700 bg-white/60 backdrop-blur-sm inline-flex items-center px-12 py-6 rounded-full font-black text-3xl border-4 border-white shadow-xl">
+                                <span className="bg-indigo-600 text-white px-6 py-2.5 rounded-2xl text-2xl mr-6 font-black">{hasStartedBefore ? '調整' : '第一步'}</span> 選擇你想挑戰的習慣
+                            </p>
+                            
+                            {(selectedTasks.size > 0 || hasStartedBefore) && (
+                                <div className="animate-in fade-in slide-in-from-bottom-12 duration-1000">
+                                    <p className="text-slate-700 bg-white/60 backdrop-blur-sm inline-flex items-center px-12 py-6 rounded-full font-black text-3xl border-4 border-white shadow-xl mb-12">
+                                        <span className="bg-indigo-600 text-white px-6 py-2.5 rounded-2xl text-2xl mr-6 font-black">{hasStartedBefore ? '確認' : '第二步'}</span> 設定旅程時間
+                                    </p>
+                                    {!hasStartedBefore && (
+                                        <div className="bg-white p-10 rounded-[40px] border-4 border-slate-50 shadow-inner max-w-2xl mx-auto mb-14 flex flex-col md:flex-row gap-12 items-center justify-center">
+                                            <div className="flex flex-col items-center">
+                                                <label className="text-slate-400 font-black mb-3 uppercase text-sm tracking-[0.2em]">開始日期</label>
+                                                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-slate-100 border-2 border-slate-200 p-5 rounded-3xl font-black text-3xl text-slate-700 focus:outline-none focus:ring-4 focus:ring-indigo-100 transition-all cursor-pointer"/>
+                                            </div>
+                                            <div className="flex flex-col items-center">
+                                                <label className="text-slate-400 font-black mb-3 uppercase text-sm tracking-[0.2em]">結束日期</label>
+                                                <div className="bg-slate-50 border-2 border-slate-100 p-5 rounded-3xl font-black text-3xl text-slate-400 w-56 text-center">{endDate}</div>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="flex flex-wrap justify-center gap-10">
+                                        {hasStartedBefore ? (
+                                            <button 
+                                                onClick={() => setAppMode('tracking')} 
+                                                className="px-24 py-10 rounded-[48px] font-black text-5xl text-white bg-indigo-600 transition-all transform hover:-translate-y-3 shadow-2xl active:translate-y-1 border-b-[16px] border-indigo-800"
+                                            >
+                                                返回追蹤旅程
+                                            </button>
+                                        ) : (
+                                            [7, 14, 21].map(d => (
+                                                <button 
+                                                    key={d} 
+                                                    onClick={() => startPlan(d)} 
+                                                    className={`px-16 py-10 rounded-[40px] font-black text-5xl text-white transition-all transform hover:-translate-y-3 hover:brightness-110 active:translate-y-1 border-b-[14px] border-black/20 shadow-2xl ${planDuration === d ? 'ring-8 ring-indigo-100 scale-105' : 'opacity-85'}`} 
+                                                    style={{ background: d === 7 ? '#10b981' : d === 14 ? '#f59e0b' : '#3b82f6' }}
+                                                >
+                                                    {d} 天
+                                                </button>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 mb-32">
+                        {sleepPlanData.map((cat) => (
+                            <div key={cat.id} className={`relative p-12 rounded-[48px] shadow-xl border-4 ${cat.blockBg} ${cat.borderColor}`}>
+                                <div className={`absolute -top-4 left-1/2 -translate-x-1/2 w-28 h-12 rotate-[-2deg] opacity-80 ${cat.tapeColor} mask-tape shadow-sm`}></div>
+                                <div className={`flex items-center gap-6 mb-12 ${cat.headerColor}`}>
+                                    <div className="p-5 rounded-[24px] bg-white/60 shadow-inner"><Icon name={cat.icon} className="w-12 h-12" /></div>
+                                    <h3 className="text-4xl font-black tracking-tight">{cat.title}</h3>
+                                </div>
+                                <ul className="space-y-8">
+                                    {cat.items.map((item, i) => {
+                                        const sel = selectedTasks.has(item);
+                                        return (
+                                            <li key={i} onClick={() => {
+                                                const next = new Set(selectedTasks);
+                                                if (sel) next.delete(item); else next.add(item);
+                                                setSelectedTasks(next);
+                                            }} className={`flex items-start gap-6 p-8 rounded-[36px] cursor-pointer transition-all border-2 ${sel ? cat.selectedBg + ' border-current scale-[0.98]' : 'border-slate-200/50 bg-white/40 hover:bg-white hover:border-slate-300'}`}>
+                                                <Icon name={sel ? "CheckCircle2" : "Circle"} className={`w-12 h-12 flex-shrink-0 ${sel ? cat.headerColor : 'text-slate-300'}`} />
+                                                <span className={`text-3xl leading-tight ${sel ? 'text-slate-900 font-black' : 'text-slate-600 font-bold'}`}>{item}</span>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            </div>
+                        ))}
+                    </div>
+                    <Footer />
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
