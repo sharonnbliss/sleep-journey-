@@ -1,10 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sleep Journey</title>
 </head>
 <body>
-    <h1>Welcome to your Sleep Journey</h1>
-    <p>Track your sleep and improve your health!</p>
+    <h1>Welcome to Your Sleep Journey</h1>
+    <p>Track your sleep patterns and improve your rest.</p>
+    <form action="/submit-sleep-data" method="post">
+        <label for="sleep-time">Time you went to sleep:</label>
+        <input type="datetime-local" id="sleep-time" name="sleep-time" required>
+        <label for="wake-time">Time you woke up:</label>
+        <input type="datetime-local" id="wake-time" name="wake-time" required>
+        <button type="submit">Submit</button>
+    </form>
 </body>
 </html>
